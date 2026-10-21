@@ -1,0 +1,101 @@
+{
+  "status": "success",
+  "val_loss": 0.6933,
+  "val_accuracy": 50.62,
+  "test_accuracy": 50.77,
+  "buy_precision": 51.19,
+  "sell_precision": 50.11,
+  "total_bars_trained": 1208230,
+  "total_bars_evaluated": 258878,
+  "training_time_minutes": 7.65,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.6935,
+      "train_acc": 50.44,
+      "val_loss": 0.6935,
+      "val_acc": 50.3,
+      "duration_sec": 45.0
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.6933,
+      "train_acc": 50.7,
+      "val_loss": 0.6943,
+      "val_acc": 49.9,
+      "duration_sec": 43.3
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.6933,
+      "train_acc": 50.77,
+      "val_loss": 0.6933,
+      "val_acc": 50.56,
+      "duration_sec": 42.7
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.6932,
+      "train_acc": 50.88,
+      "val_loss": 0.6939,
+      "val_acc": 49.75,
+      "duration_sec": 43.6
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.6932,
+      "train_acc": 50.95,
+      "val_loss": 0.6933,
+      "val_acc": 50.59,
+      "duration_sec": 43.5
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.6932,
+      "train_acc": 50.97,
+      "val_loss": 0.6934,
+      "val_acc": 50.56,
+      "duration_sec": 42.8
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.6931,
+      "train_acc": 51.07,
+      "val_loss": 0.6933,
+      "val_acc": 50.62,
+      "duration_sec": 41.2
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.6931,
+      "train_acc": 51.04,
+      "val_loss": 0.6935,
+      "val_acc": 50.31,
+      "duration_sec": 39.7
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.6931,
+      "train_acc": 51.09,
+      "val_loss": 0.6937,
+      "val_acc": 50.32,
+      "duration_sec": 39.5
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.693,
+      "train_acc": 51.15,
+      "val_loss": 0.6935,
+      "val_acc": 50.23,
+      "duration_sec": 39.0
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.693,
+      "train_acc": 51.19,
+      "val_loss": 0.6935,
+      "val_acc": 50.25,
+      "duration_sec": 39.0
+    }
+  ]
+}

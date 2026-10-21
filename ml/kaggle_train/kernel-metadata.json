@@ -1,0 +1,18 @@
+{
+  "id": "nurhadiansyah/xauusd-deep-learning-1m-train",
+  "title": "XAUUSD Deep Learning 1M Train",
+  "code_file": "train_xauusd_1m.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "keywords": ["finance", "deep-learning", "lstm", "gold", "xauusd"],
+  "dataset_sources": [
+    "novandraanugrah/xauusd-gold-price-historical-data-2004-2024"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [],
+  "model_sources": []
+}

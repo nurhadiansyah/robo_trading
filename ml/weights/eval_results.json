@@ -1,0 +1,17 @@
+{
+    "symbol": "GC=F",
+    "test_period": "2026-02-06 - 2026-09-22",
+    "num_test_candles": 157,
+    "accuracy": 0.4394904458598726,
+    "precision_bullish": 0.45161290322580644,
+    "recall_bullish": 0.7368421052631579,
+    "f1_bullish": 0.56,
+    "precision_bearish": 0.3939393939393939,
+    "recall_bearish": 0.16049382716049382,
+    "f1_bearish": 0.22807017543859648,
+    "high_confidence_accuracy": 0.4409448818897638,
+    "total_trades": 127,
+    "win_rate": 44.09448818897638,
+    "strat_return_pct": -22.61165517980791,
+    "bh_return_pct": -13.351959228515625
+}

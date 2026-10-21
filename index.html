@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RoboTrade XAU - Deep Learning MT5 Web Control Panel</title>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Local Icons & Charts -->
+  <script src="/public/lucide.min.js"></script>
+  <script src="/public/lightweight-charts.standalone.production.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #090a0d;
+      --panel-bg: rgba(18, 20, 26, 0.85);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --gold-primary: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.25);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --bullish: #10b981;
+      --bullish-glow: rgba(16, 185, 129, 0.35);
+      --bearish: #ef4444;
+      --bearish-glow: rgba(239, 68, 68, 0.35);
+      --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(245, 158, 11, 0.06), transparent 28%),
+        radial-gradient(circle at 85% 25%, rgba(16, 185, 129, 0.05), transparent 30%),
+        radial-gradient(circle at 50% 85%, rgba(59, 130, 246, 0.04), transparent 35%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Glassmorphism */
+    .glass-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    .text-gold { color: var(--gold-primary); }
+    .text-bullish { color: var(--bullish); }
+    .text-bearish { color: var(--bearish); }
+    .text-muted { color: var(--text-muted); }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.22); }
+
+    /* Layout */
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 16px 20px;
+      gap: 16px;
+      max-width: 1720px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 22px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .header-info-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .mt5-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.25); }
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .stat-card {
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .stat-label {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 1.45rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Main Grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.55fr 1.45fr;
+      gap: 16px;
+      flex: 1;
+    }
+
+    @media (max-width: 1200px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Chart & Stream Container */
+    .chart-panel {
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 14px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    #tv-chart-container {
+      width: 100%;
+      height: 350px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(8, 9, 11, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Tick Stream Table */
+    .tick-table-wrapper {
+      height: 240px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    table.tick-table {
+      width: 100%;
+      text-align: left;
+      border-collapse: collapse;
+    }
+
+    table.tick-table th {
+      position: sticky;
+      top: 0;
+      background: rgba(18, 20, 26, 0.96);
+      padding: 8px 10px;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+    }
+
+    table.tick-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    /* Right Column: AI & Trading Panel */
+    .right-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Live MT5 Positions Card */
+    .positions-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: linear-gradient(135deg, rgba(24, 27, 36, 0.9), rgba(15, 17, 23, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .pos-table-wrapper {
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+
+    table.pos-table {
+      width: 100%;
+      text-align: left;
+      border-collapse: collapse;
+    }
+
+    table.pos-table th {
+      position: sticky;
+      top: 0;
+      background: rgba(20, 23, 31, 0.98);
+      padding: 8px 8px;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    table.pos-table td {
+      padding: 8px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .badge-buy {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--bullish);
+      border: 1px solid var(--bullish);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.7rem;
+    }
+
+    .badge-sell {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--bearish);
+      border: 1px solid var(--bearish);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.7rem;
+    }
+
+    .btn-close-pos {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: var(--bearish);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.72rem;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .btn-close-pos:hover {
+      background: var(--bearish);
+      color: white;
+      box-shadow: 0 0 10px var(--bearish-glow);
+    }
+
+    .btn-close-all {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid var(--bearish);
+      color: #fca5a5;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-close-all:hover {
+      background: var(--bearish);
+      color: white;
+      box-shadow: 0 0 14px var(--bearish-glow);
+    }
+
+    /* Manual Quick Order Box */
+    .quick-order-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .order-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn-market-buy {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 0 16px var(--bullish-glow);
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .btn-market-buy:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.6);
+    }
+    .btn-market-buy:active { transform: translateY(0); }
+
+    .btn-market-sell {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 0 16px var(--bearish-glow);
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .btn-market-sell:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 24px rgba(239, 68, 68, 0.6);
+    }
+    .btn-market-sell:active { transform: translateY(0); }
+
+    /* Deep Learning Widget */
+    .deep-learning-card {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.09), rgba(15, 23, 42, 0.75));
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .dl-badge-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dl-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--gold-primary);
+      border: 1px solid var(--gold-primary);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .signal-pill {
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: 0 0 14px currentColor;
+    }
+    .signal-buy {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--bullish);
+      border: 1px solid var(--bullish);
+    }
+    .signal-sell {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--bearish);
+      border: 1px solid var(--bearish);
+    }
+    .signal-hold {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--gold-primary);
+      border: 1px solid var(--gold-primary);
+    }
+
+    .prob-bar {
+      display: flex;
+      height: 10px;
+      width: 100%;
+      border-radius: 5px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.4);
+    }
+    .prob-fill-bull {
+      background: linear-gradient(90deg, #10b981, #059669);
+      transition: width 0.5s ease;
+    }
+    .prob-fill-bear {
+      background: linear-gradient(90deg, #dc2626, #ef4444);
+      transition: width 0.5s ease;
+    }
+
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .level-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .level-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-family: var(--font-family);
+    }
+
+    /* AI Logs Box */
+    .ai-logs-box {
+      height: 130px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px 0;
+    }
+
+    .log-item {
+      padding: 7px 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border-left: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    .log-signal {
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 2px solid var(--gold-primary);
+    }
+
+    /* Trading Panel Controls */
+    .control-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .control-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .control-group label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .control-group input {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .control-group input:focus {
+      border-color: var(--gold-primary);
+    }
+
+    .btn-toggle-robot {
+      border: none;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-active {
+      background: var(--bearish);
+      color: white;
+      box-shadow: 0 0 12px var(--bearish-glow);
+    }
+    .btn-inactive {
+      background: var(--bullish);
+      color: white;
+      box-shadow: 0 0 12px var(--bullish-glow);
+    }
+
+    .btn-refresh {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--gold-primary);
+      color: var(--gold-primary);
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-refresh:hover {
+      background: rgba(245, 158, 11, 0.25);
+    }
+    .spin {
+      animation: spin-anim 1s linear infinite;
+    }
+    @keyframes spin-anim {
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Toast Notification */
+    #toast-msg {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: none;
+      z-index: 9999;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="header glass-panel">
+      <div class="header-brand">
+        <i data-lucide="activity" class="text-gold" style="width:26px; height:26px;"></i>
+        <span>RoboTrade <span class="text-gold">XAU</span></span>
+        <span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); padding: 2px 8px; background: rgba(255,255,255,0.05); border-radius: 4px;">MT5 Live Controller</span>
+      </div>
+
+      <div class="header-info-group">
+        <!-- MT5 Account Info -->
+        <div class="mt5-pill" id="mt5-pill-info">
+          <i data-lucide="shield-check" class="text-bullish" style="width:16px; height:16px;"></i>
+          <span>MT5: <strong id="hdr-login" class="text-gold">10012820751</strong></span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <span>Saldo: <strong id="hdr-balance" class="text-bullish">$100,046.72</strong></span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <span>Equity: <strong id="hdr-equity" class="text-main">$100,048.39</strong></span>
+        </div>
+
+        <div id="bot-status-badge" class="status-badge" style="border: 1px solid rgba(239, 68, 68, 0.35);">
+          <div class="status-dot" id="bot-status-dot" style="background: var(--bearish);"></div>
+          <span id="bot-status-text" class="text-bearish">AI TRADING: NONAKTIF</span>
+        </div>
+
+        <button class="btn-refresh" id="btn-manual-predict" title="Jalankan Inferensi Deep Learning">
+          <i data-lucide="refresh-cw" id="refresh-icon" style="width:14px; height:14px;"></i>
+          <span>Prediksi Ulang</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <!-- 1. Live Price -->
+      <div class="stat-card glass-panel">
+        <div class="stat-label">Harga Live XAUUSD (MT5)</div>
+        <div class="stat-value text-gold" id="stat-price">$4,303.60</div>
+      </div>
+
+      <!-- 2. 24h Change & High/Low -->
+      <div class="stat-card glass-panel">
+        <div class="stat-label">Perubahan Sesi (24 Jam)</div>
+        <div class="stat-value text-bullish" id="stat-change">
+          <i data-lucide="trending-up" style="width:20px; height:20px;"></i>
+          <span>+0.35%</span>
+        </div>
+      </div>
+
+      <!-- 3. Floating P/L -->
+      <div class="stat-card glass-panel">
+        <div class="stat-label">Floating Profit / Loss (MT5)</div>
+        <div class="stat-value text-bullish" id="stat-floating">
+          <i data-lucide="dollar-sign" id="stat-floating-icon" style="width:20px; height:20px;"></i>
+          <span id="stat-floating-val">+$1.67 USD</span>
+        </div>
+      </div>
+
+      <!-- 4. Deep Learning Signal -->
+      <div class="stat-card glass-panel">
+        <div class="stat-label">Sinyal Model Bi-LSTM (5Y)</div>
+        <div class="stat-value text-bullish" id="stat-ai-trend" style="font-size: 1.25rem;">
+          <i data-lucide="zap" class="text-gold" style="width:20px; height:20px;"></i>
+          <span id="stat-ai-text">BUY (51.9%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="main-grid">
+
+      <!-- Left: Chart & Tick Table -->
+      <div class="chart-panel glass-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i data-lucide="candlestick-chart" class="text-gold" style="width:18px; height:18px;"></i>
+            <span>Grafik Real-Time XAU/USD (Gold)</span>
+            <span class="text-muted" style="font-size:0.75rem; margin-left:6px;">1D Candlestick (MT5 Native)</span>
+          </div>
+          <div style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-muted);" id="chart-candle-time">
+            Live Stream Feed
+          </div>
+        </div>
+
+        <!-- Lightweight Candlestick Chart -->
+        <div id="tv-chart-container"></div>
+
+        <!-- Raw Data Stream (Ticks) -->
+        <div class="panel-header" style="margin-top: 4px;">
+          <div class="panel-title">
+            <i data-lucide="radio" class="text-bullish" style="width:16px; height:16px;"></i>
+            <span>Live MT5 Tick Stream Feed</span>
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">Spread: <strong id="current-spread-text" class="text-gold">$0.35</strong></span>
+        </div>
+
+        <div class="tick-table-wrapper">
+          <table class="tick-table">
+            <thead>
+              <tr>
+                <th>Waktu</th>
+                <th>Harga Tick</th>
+                <th>Bid</th>
+                <th>Ask</th>
+                <th>Spread</th>
+                <th>Volume</th>
+              </tr>
+            </thead>
+            <tbody id="tick-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: Live Positions, Quick Order, AI Model & Bot Controls -->
+      <div class="right-column">
+
+        <!-- 1. LIVE MT5 OPEN POSITIONS MANAGER -->
+        <div class="positions-panel glass-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i data-lucide="list-checks" class="text-gold" style="width:18px; height:18px;"></i>
+              <span>Daftar Posisi Terbuka di MT5</span>
+              <span id="pos-counter-badge" style="font-size:0.75rem; background:rgba(255,255,255,0.08); padding:2px 8px; border-radius:10px;">2 Aktif</span>
+            </div>
+            <button class="btn-close-all" id="btn-close-all" title="Tutup semua posisi terbuka sekarang">
+              <i data-lucide="alert-octagon" style="width:14px; height:14px;"></i>
+              <span>TUTUP SEMUA POSISI</span>
+            </button>
+          </div>
+
+          <div class="pos-table-wrapper">
+            <table class="pos-table">
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Arah</th>
+                  <th>Lot</th>
+                  <th>Entry</th>
+                  <th>Saat Ini</th>
+                  <th>SL / TP</th>
+                  <th>Profit ($)</th>
+                  <th style="text-align:center;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="pos-tbody">
+                <!-- Dynamically populated from /api/positions -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 2. QUICK MANUAL TRADE EXECUTION -->
+        <div class="quick-order-panel glass-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i data-lucide="zap" class="text-gold" style="width:18px; height:18px;"></i>
+              <span>Eksekusi Cepat ke MT5 (Buka Posisi Manual)</span>
+            </div>
+            <span style="font-size:0.75rem; color:var(--text-muted);">Direct MT5 Broker Deal</span>
+          </div>
+
+          <!-- Pilihan Penentuan TP & SL: AI Otomatis vs Manual -->
+          <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.06); padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <span style="font-size:0.75rem; color:var(--text-muted);">Penentuan Level TP & SL:</span>
+            <div style="display:flex; gap:12px; font-size:0.75rem;">
+              <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">
+                <input type="radio" name="order-tpsl-mode" id="tpsl-mode-ai" value="ai" checked />
+                <span class="text-gold" style="font-weight:700;">🤖 Otomatis dari AI (ATR Volatilitas)</span>
+              </label>
+              <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">
+                <input type="radio" name="order-tpsl-mode" id="tpsl-mode-manual" value="manual" />
+                <span style="color:var(--text-muted);">Manual ($ Poin)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="control-row">
+            <div class="control-group">
+              <label>Volume (Lot)</label>
+              <input type="number" id="quick-lot" value="0.01" step="0.01" min="0.01" />
+            </div>
+            <div class="control-group">
+              <label id="lbl-quick-tp">Take Profit (Dihitung AI)</label>
+              <input type="number" id="quick-tp" value="27.0" step="0.5" disabled style="color:var(--bullish); font-weight:700; background:rgba(16,185,129,0.08); border-color:rgba(16,185,129,0.3);" />
+            </div>
+            <div class="control-group">
+              <label id="lbl-quick-sl">Stop Loss (Dihitung AI)</label>
+              <input type="number" id="quick-sl" value="18.0" step="0.5" disabled style="color:var(--bearish); font-weight:700; background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.3);" />
+            </div>
+          </div>
+
+          <div id="ai-tpsl-hint" style="font-size:0.72rem; color:var(--text-muted); display:flex; justify-content:space-between; background:rgba(245,158,11,0.06); padding:6px 10px; border-radius:6px; border:1px dashed rgba(245,158,11,0.25);">
+            <span>Rekomendasi AI: <strong class="text-bullish" id="hint-tp-text">+ $27.00 USD</strong> / <strong class="text-bearish" id="hint-sl-text">- $18.00 USD</strong></span>
+            <span>R:R Rasio: <strong class="text-gold" id="hint-rr-text">1 : 1.5 (ATR: $18.00)</strong></span>
+          </div>
+
+          <div class="order-btn-grid">
+            <button class="btn-market-buy" id="btn-quick-buy">
+              <span style="display:flex; align-items:center; gap:6px;"><i data-lucide="arrow-up-circle"></i> BUKA BUY SEKARANG</span>
+              <span style="font-size:0.75rem; font-weight:normal; opacity:0.85;">Level TP/SL Diatur Otomatis</span>
+            </button>
+            <button class="btn-market-sell" id="btn-quick-sell">
+              <span style="display:flex; align-items:center; gap:6px;"><i data-lucide="arrow-down-circle"></i> BUKA SELL SEKARANG</span>
+              <span style="font-size:0.75rem; font-weight:normal; opacity:0.85;">Level TP/SL Diatur Otomatis</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. DEEP LEARNING MODEL INTELLIGENCE -->
+        <div class="deep-learning-card glass-panel">
+          <div class="dl-badge-row">
+            <div class="dl-badge">
+              <i data-lucide="cpu" style="width:14px; height:14px;"></i>
+              <span id="dl-model-subtitle">BI-LSTM + TEMPORAL ATTENTION (DATA 5 TAHUN)</span>
+            </div>
+            <div class="signal-pill signal-buy" id="ai-signal-badge">
+              SINYAL: BUY (51.9%)
+            </div>
+          </div>
+
+          <!-- Probability Meters -->
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:600;">
+              <span class="text-bullish" id="lbl-bullish">Bullish Probability: 51.9%</span>
+              <span class="text-bearish" id="lbl-bearish">Bearish Probability: 48.1%</span>
+            </div>
+            <div class="prob-bar">
+              <div class="prob-fill-bull" id="bar-bullish" style="width: 51.9%;"></div>
+              <div class="prob-fill-bear" id="bar-bearish" style="width: 48.1%;"></div>
+            </div>
+          </div>
+
+          <!-- Trading Levels Calculated by Model ATR -->
+          <div class="levels-grid">
+            <div class="level-item">
+              <span class="level-label">Harga Acuan (Entry)</span>
+              <strong id="dl-entry" style="color:var(--text-main);">$4,303.60</strong>
+            </div>
+            <div class="level-item">
+              <span class="level-label">Target Take Profit (TP)</span>
+              <strong id="dl-tp" class="text-bullish">$4,330.60</strong>
+            </div>
+            <div class="level-item">
+              <span class="level-label">Batas Stop Loss (SL)</span>
+              <strong id="dl-sl" class="text-bearish">$4,285.60</strong>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-muted); border-top:1px solid rgba(255,255,255,0.06); padding-top:8px;">
+            <span>Akurasi Validasi 5Y: <strong class="text-gold">58.33%</strong></span>
+            <span>R:R Rasio: <strong>1 : 1.5</strong></span>
+            <span>Aset Target: <strong>XAUUSD</strong></span>
+          </div>
+        </div>
+
+        <!-- 4. ROBOT AUTO-TRADING CONTROLLER -->
+        <div class="glass-panel" style="padding:16px; display:flex; flex-direction:column; gap:12px;">
+          <div class="panel-header">
+            <div class="panel-title">
+              <i data-lucide="bot" class="text-gold" style="width:18px; height:18px;"></i>
+              <span>Saklar Robot Trading Otomatis (Deep Learning)</span>
+            </div>
+            <button class="btn-toggle-robot btn-inactive" id="btn-toggle-robot" onclick="toggleRoboTrading()">
+              <i data-lucide="power" style="width:14px; height:14px;"></i>
+              <span id="btn-robot-text">AKTIFKAN ROBOT</span>
+            </button>
+          </div>
+
+          <div class="control-row">
+            <div class="control-group">
+              <label>Lot Bot Otomatis</label>
+              <input type="number" id="bot-lot" value="0.01" step="0.01" />
+            </div>
+            <div class="control-group">
+              <label>Ambang Keyakinan AI (%)</label>
+              <input type="number" id="bot-threshold" value="51" min="50" max="90" />
+            </div>
+          </div>
+
+          <div class="control-row">
+            <div class="control-group">
+              <label>Penentuan TP & SL Bot</label>
+              <select id="bot-tpsl-mode" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px 10px; border-radius:6px; font-size:0.8rem; outline:none;">
+                <option value="auto" selected>🤖 Otomatis AI Penuh (ATR Volatilitas + R:R)</option>
+                <option value="manual">Manual Angka Tetap</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Rasio Risk : Reward (R:R)</label>
+              <select id="bot-rr-ratio" style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px 10px; border-radius:6px; font-size:0.8rem; outline:none;">
+                <option value="1.5" selected>1 : 1.5 (Direkomendasikan)</option>
+                <option value="2.0">1 : 2.0 (Target Agresif)</option>
+                <option value="1.0">1 : 1.0 (Konservatif)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="control-row" id="row-bot-tpsl">
+            <div class="control-group">
+              <label id="lbl-bot-tp">Take Profit Bot (Dihitung AI)</label>
+              <input type="number" id="bot-tp" value="27.0" step="0.5" disabled style="color:var(--bullish); font-weight:700; background:rgba(16,185,129,0.08); border-color:rgba(16,185,129,0.3);" />
+            </div>
+            <div class="control-group">
+              <label id="lbl-bot-sl">Stop Loss Bot (Dihitung AI)</label>
+              <input type="number" id="bot-sl" value="18.0" step="0.5" disabled style="color:var(--bearish); font-weight:700; background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.3);" />
+            </div>
+          </div>
+
+          <div id="bot-tpsl-hint" style="font-size:0.72rem; color:var(--text-muted); display:flex; justify-content:space-between; background:rgba(245,158,11,0.06); padding:6px 10px; border-radius:6px; border:1px dashed rgba(245,158,11,0.25);">
+            <span>Level Eksekusi: <strong class="text-bullish" id="bot-hint-tp-text">+ $27.00</strong> / <strong class="text-bearish" id="bot-hint-sl-text">- $18.00</strong></span>
+            <span id="bot-hint-mode-text">Target: <strong class="text-gold">AI ATR (R:R 1:1.5)</strong></span>
+          </div>
+
+          <!-- AI Decision Logs -->
+          <div style="margin-top:4px;">
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; display:flex; justify-content:space-between;">
+              <span>Log Audit Eksekusi:</span>
+              <span class="text-bullish" id="log-sync-status">Live Connected</span>
+            </div>
+            <div class="ai-logs-box" id="ai-logs-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-msg"></div>
+
+  <script>
+    // State Variabel
+    let currentPrice = 4303.60;
+    let isBotRunning = false;
+    let ticks = [];
+    let positions = [];
+    let currentCandleData = [];
+
+    // State TP & SL Dinamis dari AI
+    let dynamicAITP = 27.0;
+    let dynamicAISL = 18.0;
+    let currentATR = 18.0;
+
+    const radAI = document.getElementById('tpsl-mode-ai');
+    const radManual = document.getElementById('tpsl-mode-manual');
+    const inputTP = document.getElementById('quick-tp');
+    const inputSL = document.getElementById('quick-sl');
+    const lblTP = document.getElementById('lbl-quick-tp');
+    const lblSL = document.getElementById('lbl-quick-sl');
+    const hintBox = document.getElementById('ai-tpsl-hint');
+
+    function updateTPSLModeUI() {
+      if (radAI.checked) {
+        inputTP.disabled = true;
+        inputSL.disabled = true;
+        inputTP.value = dynamicAITP.toFixed(2);
+        inputSL.value = dynamicAISL.toFixed(2);
+        lblTP.textContent = 'Take Profit (Dihitung AI)';
+        lblSL.textContent = 'Stop Loss (Dihitung AI)';
+        inputTP.style.background = 'rgba(16,185,129,0.08)';
+        inputSL.style.background = 'rgba(239,68,68,0.08)';
+        hintBox.style.display = 'flex';
+      } else {
+        inputTP.disabled = false;
+        inputSL.disabled = false;
+        lblTP.textContent = 'Take Profit ($ Poin)';
+        lblSL.textContent = 'Stop Loss ($ Poin)';
+        inputTP.style.background = 'rgba(0,0,0,0.3)';
+        inputSL.style.background = 'rgba(0,0,0,0.3)';
+        hintBox.style.display = 'none';
+      }
+    }
+    radAI.addEventListener('change', updateTPSLModeUI);
+    radManual.addEventListener('change', updateTPSLModeUI);
+
+    // Robot Trading TP & SL Controls & Logic
+    const selBotMode = document.getElementById('bot-tpsl-mode');
+    const selBotRR = document.getElementById('bot-rr-ratio');
+    const inputBotTP = document.getElementById('bot-tp');
+    const inputBotSL = document.getElementById('bot-sl');
+    const lblBotTP = document.getElementById('lbl-bot-tp');
+    const lblBotSL = document.getElementById('lbl-bot-sl');
+    const hintBotTP = document.getElementById('bot-hint-tp-text');
+    const hintBotSL = document.getElementById('bot-hint-sl-text');
+    const hintBotMode = document.getElementById('bot-hint-mode-text');
+
+    function updateBotTPSLUI() {
+      if (!selBotMode) return;
+      const isAuto = selBotMode.value === 'auto';
+      const rr = parseFloat(selBotRR ? selBotRR.value : 1.5) || 1.5;
+
+      if (isAuto) {
+        if (selBotRR) selBotRR.disabled = false;
+        const calcSL = currentATR;
+        const calcTP = currentATR * rr;
+        if (inputBotTP) {
+          inputBotTP.disabled = true;
+          inputBotTP.value = calcTP.toFixed(2);
+          inputBotTP.style.background = 'rgba(16,185,129,0.08)';
+          inputBotTP.style.borderColor = 'rgba(16,185,129,0.3)';
+        }
+        if (inputBotSL) {
+          inputBotSL.disabled = true;
+          inputBotSL.value = calcSL.toFixed(2);
+          inputBotSL.style.background = 'rgba(239,68,68,0.08)';
+          inputBotSL.style.borderColor = 'rgba(239,68,68,0.3)';
+        }
+        if (lblBotTP) lblBotTP.textContent = 'Take Profit Bot (Dihitung AI)';
+        if (lblBotSL) lblBotSL.textContent = 'Stop Loss Bot (Dihitung AI)';
+        if (hintBotTP) hintBotTP.textContent = `+ $${calcTP.toFixed(2)}`;
+        if (hintBotSL) hintBotSL.textContent = `- $${calcSL.toFixed(2)}`;
+        if (hintBotMode) hintBotMode.innerHTML = `Target: <strong class="text-gold">AI ATR (R:R 1:${rr})</strong>`;
+      } else {
+        if (selBotRR) selBotRR.disabled = true;
+        if (inputBotTP) {
+          inputBotTP.disabled = false;
+          inputBotTP.style.background = 'rgba(0,0,0,0.3)';
+          inputBotTP.style.borderColor = 'rgba(255,255,255,0.1)';
+        }
+        if (inputBotSL) {
+          inputBotSL.disabled = false;
+          inputBotSL.style.background = 'rgba(0,0,0,0.3)';
+          inputBotSL.style.borderColor = 'rgba(255,255,255,0.1)';
+        }
+        if (lblBotTP) lblBotTP.textContent = 'Take Profit Bot ($ Poin Manual)';
+        if (lblBotSL) lblBotSL.textContent = 'Stop Loss Bot ($ Poin Manual)';
+        const curTP = parseFloat(inputBotTP ? inputBotTP.value : 5.0) || 5.0;
+        const curSL = parseFloat(inputBotSL ? inputBotSL.value : 3.0) || 3.0;
+        if (hintBotTP) hintBotTP.textContent = `+ $${curTP.toFixed(2)}`;
+        if (hintBotSL) hintBotSL.textContent = `- $${curSL.toFixed(2)}`;
+        if (hintBotMode) hintBotMode.innerHTML = `Target: <strong class="text-gold">Manual Tetap</strong>`;
+      }
+    }
+
+    if (selBotMode) selBotMode.addEventListener('change', updateBotTPSLUI);
+    if (selBotRR) selBotRR.addEventListener('change', updateBotTPSLUI);
+    if (inputBotTP) inputBotTP.addEventListener('input', () => {
+      if (selBotMode && selBotMode.value === 'manual' && hintBotTP) {
+        const val = parseFloat(inputBotTP.value) || 0;
+        hintBotTP.textContent = `+ $${val.toFixed(2)}`;
+      }
+    });
+    if (inputBotSL) inputBotSL.addEventListener('input', () => {
+      if (selBotMode && selBotMode.value === 'manual' && hintBotSL) {
+        const val = parseFloat(inputBotSL.value) || 0;
+        hintBotSL.textContent = `- $${val.toFixed(2)}`;
+      }
+    });
+
+    // Toast Notification Helper
+    function showToast(text, isError = false) {
+      const toast = document.getElementById('toast-msg');
+      toast.textContent = text;
+      toast.style.background = isError ? 'rgba(239, 68, 68, 0.95)' : 'rgba(16, 185, 129, 0.95)';
+      toast.style.color = '#fff';
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    }
+
+    function addLogItem(title, msg, isSignal = false) {
+      const logsList = document.getElementById('ai-logs-list');
+      const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const div = document.createElement('div');
+      div.className = `log-item ${isSignal ? 'log-signal' : ''}`;
+      div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; color:var(--text-muted); font-size:0.7rem;">
+          <span>[${timeStr}] ${title}</span>
+          ${isSignal ? '<span class="text-bullish">SIGNAL_ACTION</span>' : ''}
+        </div>
+        <div style="margin-top:3px; color:${isSignal ? '#fff' : 'var(--text-muted)'};">${msg}</div>
+      `;
+      logsList.prepend(div);
+      if (logsList.children.length > 25) logsList.removeChild(logsList.lastChild);
+    }
+
+    // 1. Inisialisasi TradingView Lightweight Charts (Safe Mode)
+    let chart = null;
+    let candleSeries = null;
+    try {
+      if (typeof LightweightCharts !== 'undefined') {
+        const chartContainer = document.getElementById('tv-chart-container');
+        chart = LightweightCharts.createChart(chartContainer, {
+          layout: {
+            background: { color: 'rgba(8, 9, 11, 0.95)' },
+            textColor: '#94a3b8',
+          },
+          grid: {
+            vertLines: { color: 'rgba(255, 255, 255, 0.04)' },
+            horzLines: { color: 'rgba(255, 255, 255, 0.04)' },
+          },
+          crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+          rightPriceScale: { borderColor: 'rgba(255, 255, 255, 0.1)' },
+          timeScale: {
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            timeVisible: true,
+            secondsVisible: false,
+          },
+        });
+
+        candleSeries = chart.addCandlestickSeries({
+          upColor: '#10b981',
+          downColor: '#ef4444',
+          borderVisible: false,
+          wickUpColor: '#10b981',
+          wickDownColor: '#ef4444',
+        });
+
+        window.addEventListener('resize', () => {
+          if (chart && chartContainer) chart.applyOptions({ width: chartContainer.clientWidth });
+        });
+      }
+    } catch (errChart) {
+      console.warn('Grafik lightweight-charts diinisialisasi:', errChart);
+    }
+
+    // Muat lilin grafik asli dari MT5
+    async function loadCandles() {
+      try {
+        const res = await fetch('/api/market/candles?symbol=XAUUSD&count=60');
+        const data = await res.json();
+        if (data.candles && data.candles.length > 0 && candleSeries) {
+          currentCandleData = data.candles;
+          candleSeries.setData(currentCandleData);
+          if (chart) chart.timeScale().fitContent();
+        }
+      } catch (e) {
+        console.warn('Gagal memuat candles dari server', e);
+      }
+    }
+    loadCandles();
+
+    // 2. Fetch MT5 Status & Update Header + 24h Stats
+    async function syncMT5Status() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        if (data.connected) {
+          document.getElementById('hdr-login').textContent = data.login;
+          document.getElementById('hdr-balance').textContent = `$${data.balance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+          document.getElementById('hdr-equity').textContent = `$${data.equity.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+        }
+        if (data.change_24h !== undefined) {
+          const chg = data.change_24h;
+          const chgEl = document.getElementById('stat-change');
+          const isPos = chg >= 0;
+          chgEl.className = isPos ? 'stat-value text-bullish' : 'stat-value text-bearish';
+          chgEl.innerHTML = `<i data-lucide="${isPos ? 'trending-up' : 'trending-down'}" style="width:20px; height:20px;"></i> <span>${isPos ? '+' : ''}${chg.toFixed(2)}%</span>`;
+          lucide.createIcons();
+        }
+        if (data.bot_running !== undefined) {
+          updateBotBadge(data.bot_running);
+        }
+      } catch (e) {}
+    }
+
+    function updateBotBadge(running) {
+      isBotRunning = Boolean(running);
+      const badge = document.getElementById('bot-status-badge');
+      const dot = document.getElementById('bot-status-dot');
+      const text = document.getElementById('bot-status-text');
+      const btnRobot = document.getElementById('btn-toggle-robot');
+      const btnText = document.getElementById('btn-robot-text');
+
+      if (isBotRunning) {
+        badge.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+        dot.style.background = 'var(--bullish)';
+        text.className = 'text-bullish';
+        text.textContent = 'AI TRADING: AKTIF';
+        btnRobot.className = 'btn-toggle-robot btn-active';
+        btnText.textContent = 'HENTIKAN ROBOT';
+      } else {
+        badge.style.borderColor = 'rgba(239, 68, 68, 0.35)';
+        dot.style.background = 'var(--bearish)';
+        text.className = 'text-bearish';
+        text.textContent = 'AI TRADING: NONAKTIF';
+        btnRobot.className = 'btn-toggle-robot btn-inactive';
+        btnText.textContent = 'AKTIFKAN ROBOT';
+      }
+    }
+
+    // 3. Fetch Positions & Render Table
+    async function syncPositions() {
+      try {
+        const res = await fetch('/api/positions');
+        const data = await res.json();
+        positions = data.positions || [];
+
+        // Update Badge
+        document.getElementById('pos-counter-badge').textContent = `${positions.length} Aktif`;
+
+        const floatVal = data.floating_profit || 0.0;
+        const floatEl = document.getElementById('stat-floating-val');
+        floatEl.textContent = `${floatVal >= 0 ? '+' : ''}$${floatVal.toFixed(2)} USD`;
+        floatEl.className = floatVal >= 0 ? 'text-bullish' : 'text-bearish';
+
+        // Render Table
+        const tbody = document.getElementById('pos-tbody');
+        if (positions.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:20px 0;">Tidak ada posisi terbuka saat ini di MT5.</td></tr>`;
+        } else {
+          tbody.innerHTML = positions.map(p => {
+            const isBuy = p.type === 'BUY';
+            const profitColor = p.profit >= 0 ? 'text-bullish' : 'text-bearish';
+            return `
+              <tr>
+                <td style="color:var(--text-muted); font-weight:600;">#${p.ticket}</td>
+                <td><span class="${isBuy ? 'badge-buy' : 'badge-sell'}">${p.type}</span></td>
+                <td>${p.volume.toFixed(2)}</td>
+                <td>$${p.price_open.toFixed(2)}</td>
+                <td style="color:var(--gold-primary); font-weight:600;">$${p.price_current.toFixed(2)}</td>
+                <td style="color:var(--text-muted); font-size:0.7rem;">SL: ${p.sl} | TP: ${p.tp}</td>
+                <td class="${profitColor}" style="font-weight:700;">${p.profit >= 0 ? '+' : ''}$${p.profit.toFixed(2)}</td>
+                <td style="text-align:center;">
+                  <button class="btn-close-pos" onclick="closeSinglePosition(${p.ticket})">✕ Tutup</button>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (e) {}
+    }
+
+    // 4. Tutup 1 Posisi (Langsung Eksekusi Cepat)
+    window.closeSinglePosition = async function(ticket) {
+      try {
+        const res = await fetch('/api/trade/close', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticket: ticket })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, false);
+          addLogItem('MANUAL CLOSE', `Posisi #${ticket} ditutup. Profit: $${data.profit} USD`);
+          syncPositions();
+          syncMT5Status();
+        } else {
+          showToast(data.error || 'Gagal menutup posisi', true);
+        }
+      } catch (e) {
+        showToast('Kesalahan jaringan: ' + e.message, true);
+      }
+    };
+
+    // 5. Tutup Semua Posisi (Emergency Close All)
+    document.getElementById('btn-close-all').addEventListener('click', async () => {
+      if (positions.length === 0) {
+        showToast('Tidak ada posisi terbuka untuk ditutup.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/trade/close_all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbol: 'XAUUSD' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message, false);
+          addLogItem('EMERGENCY CLOSE', data.message);
+          syncPositions();
+          syncMT5Status();
+        } else {
+          showToast(data.error || 'Gagal menutup posisi', true);
+        }
+      } catch (e) {
+        showToast('Kesalahan jaringan: ' + e.message, true);
+      }
+    });
+
+    // 6. Eksekusi Order Cepat (Manual BUY / SELL dengan Opsi AI TP/SL)
+    async function executeQuickOrder(type) {
+      const lot = parseFloat(document.getElementById('quick-lot').value) || 0.01;
+      const isAI = radAI.checked;
+      const tpPoints = isAI ? dynamicAITP : (parseFloat(inputTP.value) || 5.0);
+      const slPoints = isAI ? dynamicAISL : (parseFloat(inputSL.value) || 3.0);
+
+      const btn = (type === 'BUY') ? document.getElementById('btn-quick-buy') : document.getElementById('btn-quick-sell');
+      btn.style.opacity = '0.5';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/trade/open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            symbol: 'XAUUSD',
+            type: type,
+            volume: lot,
+            use_ai_tpsl: isAI,
+            tp_points: tpPoints,
+            sl_points: slPoints
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const modeInfo = isAI ? ' (AI Dynamic TP/SL)' : '';
+          showToast(`Order ${type} Berhasil! Ticket #${data.order}${modeInfo}`, false);
+          addLogItem(`MANUAL ${type}${modeInfo}`, `Ticket #${data.order} @ $${data.price} (TP: $${data.tp}, SL: $${data.sl})`, true);
+          syncPositions();
+          syncMT5Status();
+        } else {
+          showToast(data.error || 'Gagal membuka posisi', true);
+        }
+      } catch (e) {
+        showToast('Kesalahan jaringan: ' + e.message, true);
+      } finally {
+        btn.style.opacity = '1';
+        btn.disabled = false;
+      }
+    }
+
+    document.getElementById('btn-quick-buy').addEventListener('click', () => executeQuickOrder('BUY'));
+    document.getElementById('btn-quick-sell').addEventListener('click', () => executeQuickOrder('SELL'));
+
+    // 7. Toggle Robot Auto-Trading (Start/Stop)
+    // 7. Toggle Robot Auto-Trading (Start/Stop)
+    window.toggleRoboTrading = async function() {
+      const btnRobot = document.getElementById('btn-toggle-robot');
+      const btnText = document.getElementById('btn-robot-text');
+      if (btnRobot.disabled) return;
+      btnRobot.disabled = true;
+      btnRobot.style.opacity = '0.6';
+
+      const nextAction = isBotRunning ? 'stop' : 'start';
+      btnText.textContent = nextAction === 'stop' ? 'MENGHENTIKAN...' : 'MEMULAI...';
+
+      const lot = parseFloat(document.getElementById('bot-lot').value) || 0.01;
+      const threshold = (parseFloat(document.getElementById('bot-threshold').value) || 51) / 100.0;
+      const autoTpsl = document.getElementById('bot-tpsl-mode').value === 'auto';
+      const rrRatio = parseFloat(document.getElementById('bot-rr-ratio').value) || 1.5;
+      const botTpInput = document.getElementById('bot-tp');
+      const botSlInput = document.getElementById('bot-sl');
+      const botTp = parseFloat(botTpInput ? botTpInput.value : 0) || (autoTpsl ? (currentATR * rrRatio) : 5.0);
+      const botSl = parseFloat(botSlInput ? botSlInput.value : 0) || (autoTpsl ? currentATR : 3.0);
+
+      try {
+        const res = await fetch('/api/bot/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: nextAction,
+            lot,
+            threshold,
+            auto_tpsl: autoTpsl,
+            rr_ratio: rrRatio,
+            tp: botTp,
+            sl: botSl
+          })
+        });
+        const data = await res.json();
+        const running = (data.status === 'running' || data.running === true);
+        updateBotBadge(running);
+        showToast(data.message || (running ? 'Robot Diaktifkan' : 'Robot Dihentikan'), !data.status);
+        addLogItem('ROBOT CONTROL', data.message || 'Status robot diperbarui');
+      } catch (e) {
+        showToast('Gagal mengubah status robot: ' + e.message, true);
+        updateBotBadge(isBotRunning);
+      } finally {
+        setTimeout(() => {
+          btnRobot.disabled = false;
+          btnRobot.style.opacity = '1';
+        }, 500);
+        setTimeout(syncMT5Status, 800);
+      }
+    };
+
+    const toggleBtnEl = document.getElementById('btn-toggle-robot');
+    if (toggleBtnEl) {
+      toggleBtnEl.addEventListener('click', window.toggleRoboTrading);
+    }
+
+    // 8. Sync Market Tick Real-time & Chart Live Update
+    async function syncTick() {
+      try {
+        const res = await fetch('/api/market/tick?symbol=XAUUSD');
+        const data = await res.json();
+        if (data.price) {
+          currentPrice = data.price;
+          document.getElementById('stat-price').textContent = `$${data.price.toFixed(2)}`;
+          document.getElementById('current-spread-text').textContent = `$${data.spread.toFixed(2)}`;
+
+          // Update chart current candle dynamically
+          if (currentCandleData && currentCandleData.length > 0) {
+            const lastCandle = currentCandleData[currentCandleData.length - 1];
+            lastCandle.close = data.price;
+            if (data.price > lastCandle.high) lastCandle.high = data.price;
+            if (data.price < lastCandle.low) lastCandle.low = data.price;
+            candleSeries.update(lastCandle);
+          }
+
+          // Sinkronkan harga entry dan target di AI Card
+          document.getElementById('dl-entry').textContent = `$${data.price.toFixed(2)}`;
+          document.getElementById('dl-tp').textContent = `$${(data.price + dynamicAITP).toFixed(2)}`;
+          document.getElementById('dl-sl').textContent = `$${(data.price - dynamicAISL).toFixed(2)}`;
+
+          // Tambah ke tabel tick
+          ticks.unshift(data);
+          if (ticks.length > 40) ticks.pop();
+
+          const tbody = document.getElementById('tick-tbody');
+          tbody.innerHTML = ticks.map((t, idx) => {
+            const prev = ticks[idx + 1];
+            let colorClass = 'text-gold';
+            let arrow = '';
+            if (prev) {
+              if (t.price > prev.price) { colorClass = 'text-bullish'; arrow = '▲ '; }
+              else if (t.price < prev.price) { colorClass = 'text-bearish'; arrow = '▼ '; }
+            }
+            return `
+              <tr style="background:${idx % 2 === 0 ? 'rgba(0,0,0,0.18)' : 'transparent'};">
+                <td style="color:var(--text-muted);">${t.time}</td>
+                <td class="${colorClass}" style="font-weight:600;">${arrow}${t.price.toFixed(2)}</td>
+                <td>${t.bid.toFixed(2)}</td>
+                <td>${t.ask.toFixed(2)}</td>
+                <td style="color:${t.spread > 0.5 ? 'var(--bearish)' : 'var(--bullish)'};">${t.spread.toFixed(2)}</td>
+                <td style="color:var(--text-muted);">${t.volume || 1}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (e) {}
+    }
+
+    // 9. Sync Prediksi Deep Learning & Dynamic TP/SL
+    function updateDeepLearningUI(dl) {
+      if (!dl || !dl.signal) return;
+
+      const badge = document.getElementById('ai-signal-badge');
+      badge.textContent = `SINYAL: ${dl.signal} (${dl.confidence_pct}%)`;
+      badge.className = `signal-pill signal-${dl.signal.toLowerCase()}`;
+
+      document.getElementById('lbl-bullish').textContent = `Bullish Probability: ${dl.prob_bullish}%`;
+      document.getElementById('lbl-bearish').textContent = `Bearish Probability: ${dl.prob_bearish}%`;
+      document.getElementById('bar-bullish').style.width = `${dl.prob_bullish}%`;
+      document.getElementById('bar-bearish').style.width = `${dl.prob_bearish}%`;
+
+      document.getElementById('stat-ai-text').textContent = `${dl.signal} (${dl.confidence_pct}%)`;
+
+      // Update Dynamic AI TP & SL Levels
+      if (dl.auto_tp_points) dynamicAITP = dl.auto_tp_points;
+      if (dl.auto_sl_points) dynamicAISL = dl.auto_sl_points;
+      if (dl.atr_volatility) currentATR = dl.atr_volatility;
+
+      document.getElementById('dl-entry').textContent = `$${dl.current_price ? dl.current_price.toFixed(2) : currentPrice.toFixed(2)}`;
+      document.getElementById('dl-tp').textContent = `$${(currentPrice + dynamicAITP).toFixed(2)}`;
+      document.getElementById('dl-sl').textContent = `$${(currentPrice - dynamicAISL).toFixed(2)}`;
+
+      document.getElementById('hint-tp-text').textContent = `+ $${dynamicAITP.toFixed(2)} USD`;
+      document.getElementById('hint-sl-text').textContent = `- $${dynamicAISL.toFixed(2)} USD`;
+      document.getElementById('hint-rr-text').textContent = `${dl.risk_reward_ratio || '1 : 1.5'} (ATR: $${currentATR.toFixed(2)})`;
+
+      if (radAI.checked) {
+        inputTP.value = dynamicAITP.toFixed(2);
+        inputSL.value = dynamicAISL.toFixed(2);
+      }
+
+      if (dl.timeframe) {
+        const tfBadge = document.getElementById('dl-model-subtitle');
+        if (tfBadge) {
+          const modelName = dl.model_type ? dl.model_type.toUpperCase() : 'MARKET TRANSFORMER';
+          const kfTag = dl.use_kalman ? ' • KALMAN FILTER' : '';
+          tfBadge.textContent = `${modelName} (${dl.timeframe.toUpperCase()}${kfTag})`;
+        }
+      }
+
+      updateBotTPSLUI();
+    }
+
+    async function syncAIPrediction() {
+      try {
+        const res = await fetch('/api/ai/latest');
+        const dl = await res.json();
+        updateDeepLearningUI(dl);
+      } catch (e) {}
+    }
+
+    // Manual Re-Inference Button ("Prediksi Ulang")
+    const btnPredict = document.getElementById('btn-manual-predict');
+    btnPredict.addEventListener('click', async () => {
+      const icon = document.getElementById('refresh-icon');
+      icon.classList.add('spin');
+      btnPredict.disabled = true;
+      try {
+        const res = await fetch('/api/ai/predict', { method: 'POST' });
+        const data = await res.json();
+        if (data && !data.error) {
+          updateDeepLearningUI(data);
+          showToast('Inferensi Deep Learning Selesai!', false);
+          addLogItem('AI INFERENCE', `Hasil: ${data.signal} (${data.confidence_pct}%) | TP: +$${data.auto_tp_points} / SL: -$${data.auto_sl_points}`, true);
+        } else {
+          showToast(data.error || 'Gagal memicu inferensi', true);
+        }
+      } catch (e) {
+        showToast('Gagal memicu inferensi: ' + e.message, true);
+      } finally {
+        setTimeout(() => {
+          icon.classList.remove('spin');
+          btnPredict.disabled = false;
+        }, 800);
+      }
+    });
+
+    // Inisialisasi ikon Lucide (Aman)
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      try { lucide.createIcons(); } catch(e){}
+    }
+
+    // Initial Sync & Polling Loops
+    updateTPSLModeUI();
+    updateBotTPSLUI();
+    syncMT5Status();
+    syncPositions();
+    syncTick();
+    syncAIPrediction();
+
+    // Loop interval
+    setInterval(syncTick, 1500);
+    setInterval(syncPositions, 2000);
+    setInterval(syncMT5Status, 4000);
+    setInterval(syncAIPrediction, 6000);
+  </script>
+</body>
+</html>
